@@ -1,798 +1,203 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>jubaopen贵金属行情研究室 - 自研跟单系统</title>
-  <!-- 引入Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- 引入Font Awesome图标 -->
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css">
-  <!-- 自定义配置 -->
-  <script>
-    tailwind.config = {
-      theme: {
-        extend: {
-          colors: {
-            tech: {
-              black: '#050517',
-              dark: '#0a0a23',
-              blue: '#00f0ff',
-              purple: '#6a00ff',
-              pink: '#ff00c8',
-              gray: '#1e1e3f'
-            }
-          },
-          fontFamily: {
-            cyber: ['Orbitron', 'sans-serif', 'Microsoft YaHei']
-          },
-          animation: {
-            'glow-pulse': 'glow 2s ease-in-out infinite alternate',
-            'fade-up': 'fadeUp 0.8s ease forwards',
-            'fade-in': 'fadeIn 1s ease forwards'
-          },
-          keyframes: {
-            glow: {
-              '0%': { boxShadow: '0 0 10px theme(colors.tech.blue), 0 0 20px theme(colors.tech.blue)' },
-              '100%': { boxShadow: '0 0 15px theme(colors.tech.blue), 0 0 30px theme(colors.tech.blue), 0 0 40px theme(colors.tech.purple)' }
-            },
-            fadeUp: {
-              '0%': { opacity: '0', transform: 'translateY(30px)' },
-              '100%': { opacity: '1', transform: 'translateY(0)' }
-            },
-            fadeIn: {
-              '0%': { opacity: '0' },
-              '100%': { opacity: '1' }
-            }
-          }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>域名一键Ping测试 - jubaopen</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "微软雅黑", sans-serif;
         }
-      }
-    }
-  </script>
-  <style type="text/tailwindcss">
-    @layer utilities {
-      /* 自定义工具类 */
-      .text-gradient {
-        background-clip: text;
-        -webkit-background-clip: text;
-        color: transparent;
-        background-image: linear-gradient(90deg, #00f0ff, #6a00ff, #ff00c8);
-      }
-      .bg-grid {
-        background-image: 
-          linear-gradient(rgba(0, 240, 255, 0.1) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(0, 240, 255, 0.1) 1px, transparent 1px);
-        background-size: 50px 50px;
-      }
-      .card-glow {
-        @apply border border-tech-blue/50 shadow-lg shadow-tech-blue/20 hover:shadow-tech-blue/40 transition-all duration-500;
-      }
-      .section-fade {
-        opacity: 0;
-        transform: translateY(20px);
-        transition: all 0.8s ease;
-      }
-      .section-fade.active {
-        opacity: 1;
-        transform: translateY(0);
-      }
-      .scrollbar-hide {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-      }
-      .scrollbar-hide::-webkit-scrollbar {
-        display: none;
-      }
-    }
-  </style>
-  <!-- 引入谷歌字体Orbitron（科技感字体） -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+        body {
+            background: #f5f5f5;
+            padding: 20px;
+        }
+        .container {
+            max-width: 450px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+        }
+        h1 {
+            font-size: 20px;
+            color: #333;
+            text-align: center;
+            margin-bottom: 25px;
+            font-weight: 600;
+        }
+        .domain-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 12px;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+        .domain-name {
+            font-size: 14px;
+            color: #333;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex: 1;
+            margin-right: 10px;
+        }
+        .ping-result {
+            font-size: 14px;
+            font-weight: 600;
+            min-width: 80px;
+            text-align: right;
+        }
+        .status-success {
+            color: #00b42a;
+        }
+        .status-error {
+            color: #f53f3f;
+        }
+        .status-loading {
+            color: #ff7d00;
+        }
+        .ping-btn {
+            width: 100%;
+            padding: 16px;
+            font-size: 16px;
+            color: #fff;
+            background: #2f54eb;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: background 0.2s;
+        }
+        .ping-btn:active {
+            background: #2543c7;
+            transform: scale(0.98);
+        }
+        .tips {
+            margin-top: 20px;
+            font-size: 12px;
+            color: #666;
+            line-height: 1.6;
+            text-align: center;
+        }
+    </style>
 </head>
-<body class="bg-tech-black text-gray-100 font-cyber bg-grid min-h-screen overflow-x-hidden">
-  <!-- 导航栏 -->
-  <nav class="fixed top-0 left-0 w-full z-50 bg-tech-dark/80 backdrop-blur-lg border-b border-tech-blue/30">
-    <div class="container mx-auto px-4 py-3 flex justify-between items-center">
-      <div class="flex items-center gap-2">
-        <i class="fa fa-line-chart text-tech-blue text-2xl animate-glow-pulse"></i>
-        <h1 class="text-xl md:text-2xl font-bold text-gradient">jubaopen贵金属研究室</h1>
-      </div>
-      <div class="hidden md:flex gap-6 items-center">
-        <a href="#overview" class="hover:text-tech-blue transition-colors duration-300">产品概览</a>
-        <a href="#features" class="hover:text-tech-blue transition-colors duration-300">核心功能</a>
-        <a href="#dev-requirements" class="hover:text-tech-blue transition-colors duration-300">开发要求</a>
-        <a href="#user-guide" class="hover:text-tech-blue transition-colors duration-300">用户指南</a>
-        <a href="#advantages" class="hover:text-tech-blue transition-colors duration-300">核心优势</a>
-      </div>
-      <!-- 移动端菜单按钮 -->
-      <button class="md:hidden text-tech-blue text-2xl" id="menuBtn">
-        <i class="fa fa-bars"></i>
-      </button>
+<body>
+    <div class="container">
+        <h1>域名Ping测试面板</h1>
+        <!-- 9个域名展示区 -->
+        <div class="domain-list">
+            <div class="domain-card">
+                <div class="domain-name">aoyouios.dpdns.org</div>
+                <div class="ping-result" id="res1">未测试</div>
+            </div>
+            <div class="domain-card">
+                <div class="domain-name">aoyouios.ggff.net</div>
+                <div class="ping-result" id="res2">未测试</div>
+            </div>
+            <div class="domain-card">
+                <div class="domain-name">aoyouios.qzz.io</div>
+                <div class="ping-result" id="res3">未测试</div>
+            </div>
+            <div class="domain-card">
+                <div class="domain-name">jubaopen.qzz.io</div>
+                <div class="ping-result" id="res4">未测试</div>
+            </div>
+            <div class="domain-card">
+                <div class="domain-name">myjubaopen.qzz.io</div>
+                <div class="ping-result" id="res5">未测试</div>
+            </div>
+            <div class="domain-card">
+                <div class="domain-name">sunwukong.qzz.io</div>
+                <div class="ping-result" id="res6">未测试</div>
+            </div>
+            <div class="domain-card">
+                <div class="domain-name">jubaopen.dpdns.org</div>
+                <div class="ping-result" id="res7">未测试</div>
+            </div>
+            <div class="domain-card">
+                <div class="domain-name">jubaopen.filegear-sg.me</div>
+                <div class="ping-result" id="res8">未测试</div>
+            </div>
+            <div class="domain-card">
+                <div class="domain-name">jubaopen.ggff.net</div>
+                <div class="ping-result" id="res9">未测试</div>
+            </div>
+        </div>
+        <!-- 一键Ping按钮 -->
+        <button class="ping-btn" onclick="startAllPing()">一键Ping所有域名</button>
+        <div class="tips">
+            点击按钮开始测试，显示延迟(ms)为可访问，数值越小越快<br>
+            纯本地运行，无网络请求，测试结果基于当前手机网络
+        </div>
     </div>
-    <!-- 移动端菜单 -->
-    <div class="md:hidden hidden bg-tech-gray/90 backdrop-blur-lg w-full border-b border-tech-blue/30" id="mobileMenu">
-      <div class="container mx-auto px-4 py-2 flex flex-col gap-3">
-        <a href="#overview" class="py-2 hover:text-tech-blue transition-colors duration-300">产品概览</a>
-        <a href="#features" class="py-2 hover:text-tech-blue transition-colors duration-300">核心功能</a>
-        <a href="#dev-requirements" class="py-2 hover:text-tech-blue transition-colors duration-300">开发要求</a>
-        <a href="#user-guide" class="py-2 hover:text-tech-blue transition-colors duration-300">用户指南</a>
-        <a href="#advantages" class="py-2 hover:text-tech-blue transition-colors duration-300">核心优势</a>
-      </div>
-    </div>
-  </nav>
 
-  <!-- 英雄区 -->
-  <header class="pt-24 pb-16 md:pt-32 md:pb-24 container mx-auto px-4 flex flex-col items-center text-center section-fade">
-    <div class="mb-6 inline-block">
-      <span class="px-4 py-2 bg-tech-gray/50 border border-tech-blue/40 rounded-full text-tech-blue text-sm md:text-base">
-        🚀 全端适配 · 智能跟单 · 科技赋能
-      </span>
-    </div>
-    <h1 class="text-3xl md:text-5xl lg:text-6xl font-black text-gradient mb-4 leading-tight">
-      jubaopen贵金属行情研究室<br>自研跟单系统
-    </h1>
-    <p class="text-xl md:text-2xl text-gray-300 mb-8 max-w-3xl">
-      自适配资金 · 自适配杠杆 · 跨平台兼容 · 多账户精准跟单
-    </p>
-    <div class="flex flex-wrap justify-center gap-4 mb-12">
-      <!-- 多端适配标识 -->
-      <div class="flex items-center gap-2 px-5 py-3 bg-tech-gray/30 rounded-lg border border-tech-blue/30">
-        <i class="fa fa-apple text-2xl"></i>
-        <span>苹果手机</span>
-      </div>
-      <div class="flex items-center gap-2 px-5 py-3 bg-tech-gray/30 rounded-lg border border-tech-blue/30">
-        <i class="fa fa-android text-2xl"></i>
-        <span>安卓手机</span>
-      </div>
-      <div class="flex items-center gap-2 px-5 py-3 bg-tech-gray/30 rounded-lg border border-tech-blue/30">
-        <i class="fa fa-desktop text-2xl"></i>
-        <span>PC电脑</span>
-      </div>
-    </div>
-    <div class="w-full max-w-4xl h-60 md:h-80 bg-tech-dark/50 border border-tech-blue/40 rounded-2xl flex items-center justify-center overflow-hidden">
-      <div class="absolute w-full h-full bg-grid opacity-50"></div>
-      <div class="relative z-10 flex flex-col items-center">
-        <i class="fa fa-refresh text-4xl md:text-6xl text-tech-blue animate-spin-slow mb-4"></i>
-        <p class="text-lg md:text-xl text-gray-300">智能配对 · 无缝跟单 · 风险可控</p>
-      </div>
-    </div>
-  </header>
+    <script>
+        // 域名列表与结果ID映射
+        const domainList = [
+            { id: 'res1', domain: 'aoyouios.dpdns.org' },
+            { id: 'res2', domain: 'aoyouios.ggff.net' },
+            { id: 'res3', domain: 'aoyouios.qzz.io' },
+            { id: 'res4', domain: 'jubaopen.qzz.io' },
+            { id: 'res5', domain: 'myjubaopen.qzz.io' },
+            { id: 'res6', domain: 'sunwukong.qzz.io' },
+            { id: 'res7', domain: 'jubaopen.dpdns.org' },
+            { id: 'res8', domain: 'jubaopen.filegear-sg.me' },
+            { id: 'res9', domain: 'jubaopen.ggff.net' }
+        ];
 
-  <!-- 产品概览 -->
-  <section id="overview" class="py-16 md:py-24 container mx-auto px-4 section-fade">
-    <div class="flex flex-col items-center mb-12">
-      <h2 class="text-2xl md:text-4xl font-bold text-gradient mb-4">产品概览</h2>
-      <div class="w-24 h-1 bg-gradient-to-r from-tech-blue to-tech-purple rounded-full"></div>
-    </div>
-    <div class="max-w-5xl mx-auto bg-tech-dark/70 border border-tech-blue/30 rounded-2xl p-6 md:p-8 card-glow">
-      <p class="text-lg text-gray-300 leading-relaxed mb-6">
-        本系统是jubaopen贵金属行情研究室专为黄金（XAUUSD）交易打造的智能跟单EA系统，基于MT5平台开发，实现多信号源精准配对、USD/USC账户兼容、自适应杠杆修正、双重风控防护等核心功能，既满足个人低成本策略测试需求，也支持小批量客户多信号源跟单服务，全程无需复杂操作，参数极简，上手即会。
-      </p>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="bg-tech-gray/30 rounded-xl p-5 border border-tech-blue/20 hover:border-tech-blue/50 transition-all duration-300">
-          <i class="fa fa-bullseye text-tech-blue text-2xl mb-3"></i>
-          <h3 class="text-xl font-semibold mb-2">精准跟单</h3>
-          <p class="text-gray-400">账户ID定向配对，无串台，不同客户精准跟随目标信号源</p>
-        </div>
-        <div class="bg-tech-gray/30 rounded-xl p-5 border border-tech-blue/20 hover:border-tech-blue/50 transition-all duration-300">
-          <i class="fa fa-balance-scale text-tech-blue text-2xl mb-3"></i>
-          <h3 class="text-xl font-semibold mb-2">自适应匹配</h3>
-          <p class="text-gray-400">自动适配资金规模、杠杆差异，保证风险与收益同步</p>
-        </div>
-        <div class="bg-tech-gray/30 rounded-xl p-5 border border-tech-blue/20 hover:border-tech-blue/50 transition-all duration-300">
-          <i class="fa fa-shield text-tech-blue text-2xl mb-3"></i>
-          <h3 class="text-xl font-semibold mb-2">安全风控</h3>
-          <p class="text-gray-400">当日亏损+保证金双阈值，触发自动停新单，防爆仓</p>
-        </div>
-      </div>
-    </div>
-  </section>
+        // 单个域名Ping测试
+        function pingDomain(item) {
+            const resultDom = document.getElementById(item.id);
+            // 置为加载中
+            resultDom.className = 'ping-result status-loading';
+            resultDom.innerText = '测试中...';
 
-  <!-- 核心功能 -->
-  <section id="features" class="py-16 md:py-24 container mx-auto px-4 bg-tech-dark/30 section-fade">
-    <div class="flex flex-col items-center mb-12">
-      <h2 class="text-2xl md:text-4xl font-bold text-gradient mb-4">核心功能</h2>
-      <div class="w-24 h-1 bg-gradient-to-r from-tech-blue to-tech-purple rounded-full"></div>
-    </div>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-      <!-- 功能卡片1 -->
-      <div class="bg-tech-dark/70 rounded-2xl p-6 card-glow hover:scale-105 transition-transform duration-500">
-        <div class="w-12 h-12 bg-tech-blue/20 rounded-lg flex items-center justify-center mb-4">
-          <i class="fa fa-id-card text-tech-blue text-xl"></i>
-        </div>
-        <h3 class="text-xl font-bold mb-3">多信号源精准配对</h3>
-        <ul class="text-gray-300 space-y-2">
-          <li class="flex items-start gap-2">
-            <i class="fa fa-check text-tech-blue mt-1"></i>
-            <span>跟单账户填写目标被跟账户ID（位数不限），精准定向</span>
-          </li>
-          <li class="flex items-start gap-2">
-            <i class="fa fa-check text-tech-blue mt-1"></i>
-            <span>自动过滤非目标账户信号，无交叉干扰、无串台</span>
-          </li>
-          <li class="flex items-start gap-2">
-            <i class="fa fa-check text-tech-blue mt-1"></i>
-            <span>支持实盘/观摩账户双向配对，灵活度拉满</span>
-          </li>
-        </ul>
-      </div>
-      <!-- 功能卡片2 -->
-      <div class="bg-tech-dark/70 rounded-2xl p-6 card-glow hover:scale-105 transition-transform duration-500">
-        <div class="w-12 h-12 bg-tech-blue/20 rounded-lg flex items-center justify-center mb-4">
-          <i class="fa fa-exchange text-tech-blue text-xl"></i>
-        </div>
-        <h3 class="text-xl font-bold mb-3">USD/USC账户兼容</h3>
-        <ul class="text-gray-300 space-y-2">
-          <li class="flex items-start gap-2">
-            <i class="fa fa-check text-tech-blue mt-1"></i>
-            <span>默认开启账面等值模式，10000 USC = 10000 USD</span>
-          </li>
-          <li class="flex items-start gap-2">
-            <i class="fa fa-check text-tech-blue mt-1"></i>
-            <span>关闭等值模式后，按1 USD = 100 USC自动换算</span>
-          </li>
-          <li class="flex items-start gap-2">
-            <i class="fa fa-check text-tech-blue mt-1"></i>
-            <span>低成本测试观摩账户，降低策略验证成本</span>
-          </li>
-        </ul>
-      </div>
-      <!-- 功能卡片3 -->
-      <div class="bg-tech-dark/70 rounded-2xl p-6 card-glow hover:scale-105 transition-transform duration-500">
-        <div class="w-12 h-12 bg-tech-blue/20 rounded-lg flex items-center justify-center mb-4">
-          <i class="fa fa-sliders text-tech-blue text-xl"></i>
-        </div>
-        <h3 class="text-xl font-bold mb-3">双模式跟单适配</h3>
-        <ul class="text-gray-300 space-y-2">
-          <li class="flex items-start gap-2">
-            <i class="fa fa-check text-tech-blue mt-1"></i>
-            <span>1:1固定跟单：完全复刻目标账户手数、SL/TP</span>
-          </li>
-          <li class="flex items-start gap-2">
-            <i class="fa fa-check text-tech-blue mt-1"></i>
-            <span>自适应跟单：按资金比例+杠杆修正自动计算手数</span>
-          </li>
-          <li class="flex items-start gap-2">
-            <i class="fa fa-check text-tech-blue mt-1"></i>
-            <span>支持运行中切换模式，无需重启EA</span>
-          </li>
-        </ul>
-      </div>
-      <!-- 功能卡片4 -->
-      <div class="bg-tech-dark/70 rounded-2xl p-6 card-glow hover:scale-105 transition-transform duration-500">
-        <div class="w-12 h-12 bg-tech-blue/20 rounded-lg flex items-center justify-center mb-4">
-          <i class="fa fa-warning text-tech-blue text-xl"></i>
-        </div>
-        <h3 class="text-xl font-bold mb-3">双重风控防护</h3>
-        <ul class="text-gray-300 space-y-2">
-          <li class="flex items-start gap-2">
-            <i class="fa fa-check text-tech-blue mt-1"></i>
-            <span>当日亏损阈值：默认10%，触发停新单仅同步平仓</span>
-          </li>
-          <li class="flex items-start gap-2">
-            <i class="fa fa-check text-tech-blue mt-1"></i>
-            <span>保证金占用阈值：默认90%，防爆仓最后一道防线</span>
-          </li>
-          <li class="flex items-start gap-2">
-            <i class="fa fa-check text-tech-blue mt-1"></i>
-            <span>手数限制：最大2.0手，最小0.01手，控制单笔风险</span>
-          </li>
-        </ul>
-      </div>
-      <!-- 功能卡片5 -->
-      <div class="bg-tech-dark/70 rounded-2xl p-6 card-glow hover:scale-105 transition-transform duration-500">
-        <div class="w-12 h-12 bg-tech-blue/20 rounded-lg flex items-center justify-center mb-4">
-          <i class="fa fa-dashboard text-tech-blue text-xl"></i>
-        </div>
-        <h3 class="text-xl font-bold mb-3">科技感仪表盘</h3>
-        <ul class="text-gray-300 space-y-2">
-          <li class="flex items-start gap-2">
-            <i class="fa fa-check text-tech-blue mt-1"></i>
-            <span>右上角固定布局，实时展示账户、跟单、风控状态</span>
-          </li>
-          <li class="flex items-start gap-2">
-            <i class="fa fa-check text-tech-blue mt-1"></i>
-            <span>风控触发时红色闪烁预警，直观感知风险状态</span>
-          </li>
-          <li class="flex items-start gap-2">
-            <i class="fa fa-check text-tech-blue mt-1"></i>
-            <span>显示最新日志信息，快速定位异常问题</span>
-          </li>
-        </ul>
-      </div>
-      <!-- 功能卡片6 -->
-      <div class="bg-tech-dark/70 rounded-2xl p-6 card-glow hover:scale-105 transition-transform duration-500">
-        <div class="w-12 h-12 bg-tech-blue/20 rounded-lg flex items-center justify-center mb-4">
-          <i class="fa fa-file-text text-tech-blue text-xl"></i>
-        </div>
-        <h3 class="text-xl font-bold mb-3">分级日志追溯</h3>
-        <ul class="text-gray-300 space-y-2">
-          <li class="flex items-start gap-2">
-            <i class="fa fa-check text-tech-blue mt-1"></i>
-            <span>三级日志：错误（红色）、警告（黄色）、信息（黑色）</span>
-          </li>
-          <li class="flex items-start gap-2">
-            <i class="fa fa-check text-tech-blue mt-1"></i>
-            <span>支持MT5专家窗口+本地文件双输出，可追溯</span>
-          </li>
-          <li class="flex items-start gap-2">
-            <i class="fa fa-check text-tech-blue mt-1"></i>
-            <span>固定日志格式，快速筛选关键信息定位问题</span>
-          </li>
-        </ul>
-      </div>
-    </div>
-  </section>
-
-  <!-- 开发团队要求 -->
-  <section id="dev-requirements" class="py-16 md:py-24 container mx-auto px-4 section-fade">
-    <div class="flex flex-col items-center mb-12">
-      <h2 class="text-2xl md:text-4xl font-bold text-gradient mb-4">开发团队专属要求</h2>
-      <div class="w-24 h-1 bg-gradient-to-r from-tech-blue to-tech-purple rounded-full"></div>
-    </div>
-    <div class="max-w-5xl mx-auto bg-tech-dark/70 border border-tech-blue/30 rounded-2xl p-6 md:p-8 card-glow overflow-hidden">
-      <!-- 标签切换 -->
-      <div class="flex flex-wrap border-b border-tech-blue/30 mb-6">
-        <button class="dev-tab active px-4 py-2 text-tech-blue font-medium" data-tab="basic">基本信息</button>
-        <button class="dev-tab px-4 py-2 text-gray-400 hover:text-tech-blue transition-colors" data-tab="modules">功能模块</button>
-        <button class="dev-tab px-4 py-2 text-gray-400 hover:text-tech-blue transition-colors" data-tab="params">核心参数</button>
-        <button class="dev-tab px-4 py-2 text-gray-400 hover:text-tech-blue transition-colors" data-tab="tests">测试场景</button>
-        <button class="dev-tab px-4 py-2 text-gray-400 hover:text-tech-blue transition-colors" data-tab="accept">验收标准</button>
-      </div>
-      <!-- 标签内容 -->
-      <div class="dev-content active" id="basic">
-        <h3 class="text-xl font-bold mb-4 text-tech-blue">基本信息与核心约束</h3>
-        <ul class="text-gray-300 space-y-3">
-          <li class="flex items-start gap-2">
-            <i class="fa fa-caret-right text-tech-blue mt-1"></i>
-            <span><strong>产品名称</strong>：jubaopen贵金属行情研究室自研跟单系统</span>
-          </li>
-          <li class="flex items-start gap-2">
-            <i class="fa fa-caret-right text-tech-blue mt-1"></i>
-            <span><strong>适用平台</strong>：MetaTrader 5（MT5）</span>
-          </li>
-          <li class="flex items-start gap-2">
-            <i class="fa fa-caret-right text-tech-blue mt-1"></i>
-            <span><strong>专属品种</strong>：仅支持黄金（XAUUSD），无需其他品种过滤逻辑</span>
-          </li>
-          <li class="flex items-start gap-2">
-            <i class="fa fa-caret-right text-tech-blue mt-1"></i>
-            <span><strong>账户兼容性</strong>：支持MT5所有券商账户（实盘/观摩），账户ID位数不限（8位/10位/12位等）</span>
-          </li>
-          <li class="flex items-start gap-2">
-            <i class="fa fa-caret-right text-tech-blue mt-1"></i>
-            <span><strong>运行隔离</strong>：每个账户的EA实例独立运行，数据/逻辑互不干扰</span>
-          </li>
-          <li class="flex items-start gap-2">
-            <i class="fa fa-caret-right text-tech-blue mt-1"></i>
-            <span><strong>性能要求</strong>：运行时CPU占用≤5%，支持7×24小时不间断运行</span>
-          </li>
-        </ul>
-      </div>
-      <div class="dev-content hidden" id="modules">
-        <h3 class="text-xl font-bold mb-4 text-tech-blue">核心功能模块需求</h3>
-        <div class="overflow-x-auto scrollbar-hide">
-          <table class="w-full border-collapse">
-            <thead>
-              <tr class="border-b border-tech-blue/50">
-                <th class="px-4 py-3 text-left text-tech-blue">模块</th>
-                <th class="px-4 py-3 text-left text-tech-blue">功能点</th>
-                <th class="px-4 py-3 text-left text-tech-blue">详细需求</th>
-              </tr>
-            </thead>
-            <tbody class="text-gray-300">
-              <tr class="border-b border-tech-gray/50 hover:bg-tech-gray/20 transition-colors">
-                <td class="px-4 py-3 font-medium">账户对标模块</td>
-                <td class="px-4 py-3">USD/USC账面等值开关</td>
-                <td class="px-4 py-3 text-sm">1. 参数置顶，默认开启（true）；2. 开启时：USC按账面与USD等值；3. 关闭时：按1 USD=100 USC换算</td>
-              </tr>
-              <tr class="border-b border-tech-gray/50 hover:bg-tech-gray/20 transition-colors">
-                <td class="px-4 py-3 font-medium">跟单模式模块</td>
-                <td class="px-4 py-3">账户角色选择</td>
-                <td class="px-4 py-3 text-sm">枚举参数：0=被跟账户（信号源）、1=跟单账户（执行端），默认0</td>
-              </tr>
-              <tr class="border-b border-tech-gray/50 hover:bg-tech-gray/20 transition-colors">
-                <td class="px-4 py-3 font-medium">跟单模式模块</td>
-                <td class="px-4 py-3">多信号源精准配对</td>
-                <td class="px-4 py-3 text-sm">1. 跟单账户填写目标被跟账户ID；2. 仅监听该ID信号；3. 被跟账户加载EA即生成信号</td>
-              </tr>
-              <tr class="border-b border-tech-gray/50 hover:bg-tech-gray/20 transition-colors">
-                <td class="px-4 py-3 font-medium">跟单模式模块</td>
-                <td class="px-4 py-3">跟单模式选择</td>
-                <td class="px-4 py-3 text-sm">枚举参数：0=1:1固定（默认）、1=自适应；自适应手数=被跟手数×资金比例×杠杆修正系数</td>
-              </tr>
-              <tr class="border-b border-tech-gray/50 hover:bg-tech-gray/20 transition-colors">
-                <td class="px-4 py-3 font-medium">风控模块</td>
-                <td class="px-4 py-3">双重阈值风控</td>
-                <td class="px-4 py-3 text-sm">1. 当日亏损阈值（默认10%）、保证金占用阈值（默认90%）；2. 触发时停新单仅平仓，仪表盘+日志预警</td>
-              </tr>
-              <tr class="border-b border-tech-gray/50 hover:bg-tech-gray/20 transition-colors">
-                <td class="px-4 py-3 font-medium">仪表盘/日志模块</td>
-                <td class="px-4 py-3">可视化+分级日志</td>
-                <td class="px-4 py-3 text-sm">1. 右上角固定仪表盘，实时展示状态；2. 三级日志输出，支持双端存储，固定格式</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <div class="dev-content hidden" id="params">
-        <h3 class="text-xl font-bold mb-4 text-tech-blue">核心参数清单（需内置EA）</h3>
-        <div class="overflow-x-auto scrollbar-hide">
-          <table class="w-full border-collapse">
-            <thead>
-              <tr class="border-b border-tech-blue/50">
-                <th class="px-4 py-3 text-left text-tech-blue">参数名称</th>
-                <th class="px-4 py-3 text-left text-tech-blue">类型</th>
-                <th class="px-4 py-3 text-left text-tech-blue">默认值</th>
-                <th class="px-4 py-3 text-left text-tech-blue">说明</th>
-              </tr>
-            </thead>
-            <tbody class="text-gray-300">
-              <tr class="border-b border-tech-gray/50 hover:bg-tech-gray/20 transition-colors">
-                <td class="px-4 py-3">账户角色</td>
-                <td class="px-4 py-3">枚举</td>
-                <td class="px-4 py-3">0（被跟账户）</td>
-                <td class="px-4 py-3 text-sm">0=信号源，1=执行端</td>
-              </tr>
-              <tr class="border-b border-tech-gray/50 hover:bg-tech-gray/20 transition-colors">
-                <td class="px-4 py-3">目标被跟账户ID</td>
-                <td class="px-4 py-3">字符串</td>
-                <td class="px-4 py-3">空</td>
-                <td class="px-4 py-3 text-sm">跟单账户必填，填写目标账户唯一ID</td>
-              </tr>
-              <tr class="border-b border-tech-gray/50 hover:bg-tech-gray/20 transition-colors">
-                <td class="px-4 py-3">USD与USC账面等值</td>
-                <td class="px-4 py-3">bool</td>
-                <td class="px-4 py-3">true</td>
-                <td class="px-4 py-3 text-sm">开启后USC与USD账面数值等值</td>
-              </tr>
-              <tr class="border-b border-tech-gray/50 hover:bg-tech-gray/20 transition-colors">
-                <td class="px-4 py-3">跟单模式</td>
-                <td class="px-4 py-3">枚举</td>
-                <td class="px-4 py-3">0（1:1固定）</td>
-                <td class="px-4 py-3 text-sm">0=固定跟单，1=自适应跟单</td>
-              </tr>
-              <tr class="border-b border-tech-gray/50 hover:bg-tech-gray/20 transition-colors">
-                <td class="px-4 py-3">当日亏损停止阈值(%)</td>
-                <td class="px-4 py-3">double</td>
-                <td class="px-4 py-3">10.0</td>
-                <td class="px-4 py-3 text-sm">单日亏损超此值停新单</td>
-              </tr>
-              <tr class="border-b border-tech-gray/50 hover:bg-tech-gray/20 transition-colors">
-                <td class="px-4 py-3">保证金占用停止阈值(%)</td>
-                <td class="px-4 py-3">double</td>
-                <td class="px-4 py-3">90.0</td>
-                <td class="px-4 py-3 text-sm">保证金超此值停新单</td>
-              </tr>
-              <tr class="border-b border-tech-gray/50 hover:bg-tech-gray/20 transition-colors">
-                <td class="px-4 py-3">最大开仓手数</td>
-                <td class="px-4 py-3">double</td>
-                <td class="px-4 py-3">2.0</td>
-                <td class="px-4 py-3 text-sm">单笔最大手数限制</td>
-              </tr>
-              <tr class="border-b border-tech-gray/50 hover:bg-tech-gray/20 transition-colors">
-                <td class="px-4 py-3">日志输出级别</td>
-                <td class="px-4 py-3">枚举</td>
-                <td class="px-4 py-3">1（错误+警告）</td>
-                <td class="px-4 py-3 text-sm">0=仅错误，1=错误+警告，2=全部</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <div class="dev-content hidden" id="tests">
-        <h3 class="text-xl font-bold mb-4 text-tech-blue">核心测试场景（需100%验证）</h3>
-        <div class="space-y-6">
-          <div class="bg-tech-gray/30 rounded-xl p-5 border border-tech-blue/20">
-            <h4 class="font-semibold text-lg mb-2 text-tech-blue">场景1：多信号源精准配对测试</h4>
-            <p class="text-gray-300 mb-3"><strong>测试条件</strong>：被跟账户A（ID20517011）、B（ID50168356）；跟单账户C填A的ID、D填B的ID</p>
-            <p class="text-gray-300"><strong>预期结果</strong>：C仅同步A的交易，D仅同步B的交易，无交叉干扰，日志记录精准配对信息</p>
-          </div>
-          <div class="bg-tech-gray/30 rounded-xl p-5 border border-tech-blue/20">
-            <h4 class="font-semibold text-lg mb-2 text-tech-blue">场景2：USD/USC账面等值测试</h4>
-            <p class="text-gray-300 mb-3"><strong>测试条件</strong>：被跟账户10000 USD，跟单账户10000 USC，开启等值模式，1:1跟单</p>
-            <p class="text-gray-300"><strong>预期结果</strong>：跟单账户手数与被跟账户一致，金价波动后，双账户利润率完全相同</p>
-          </div>
-          <div class="bg-tech-gray/30 rounded-xl p-5 border border-tech-blue/20">
-            <h4 class="font-semibold text-lg mb-2 text-tech-blue">场景3：自适应杠杆修正测试</h4>
-            <p class="text-gray-300 mb-3"><strong>测试条件</strong>：被跟账户500倍杠杆，跟单账户50倍杠杆，自适应模式开启杠杆修正</p>
-            <p class="text-gray-300"><strong>预期结果</strong>：跟单手数自动为被跟手数的0.1倍，双账户保证金占用比例一致</p>
-          </div>
-          <div class="bg-tech-gray/30 rounded-xl p-5 border border-tech-blue/20">
-            <h4 class="font-semibold text-lg mb-2 text-tech-blue">场景4：风控阈值触发测试</h4>
-            <p class="text-gray-300 mb-3"><strong>测试条件</strong>：跟单账户初始权益10000 USD，当日亏损达10%；或保证金占用达90%</p>
-            <p class="text-gray-300"><strong>预期结果</strong>：EA自动停止新单跟单，仅同步平仓，仪表盘红色闪烁，日志记录警告信息</p>
-          </div>
-        </div>
-      </div>
-      <div class="dev-content hidden" id="accept">
-        <h3 class="text-xl font-bold mb-4 text-tech-blue">验收标准（需全部达标）</h3>
-        <ul class="text-gray-300 space-y-3">
-          <li class="flex items-start gap-2">
-            <i class="fa fa-check-circle text-tech-blue mt-1"></i>
-            <span>所有功能模块完整实现，无缺失功能点</span>
-          </li>
-          <li class="flex items-start gap-2">
-            <i class="fa fa-check-circle text-tech-blue mt-1"></i>
-            <span>多信号源配对无串台，ID填写正确即精准跟单，无交叉干扰</span>
-          </li>
-          <li class="flex items-start gap-2">
-            <i class="fa fa-check-circle text-tech-blue mt-1"></i>
-            <span>USD/USC等值模式/换算模式切换正常，计算结果准确</span>
-          </li>
-          <li class="flex items-start gap-2">
-            <i class="fa fa-check-circle text-tech-blue mt-1"></i>
-            <span>自适应跟单手数计算准确，杠杆修正功能生效</span>
-          </li>
-          <li class="flex items-start gap-2">
-            <i class="fa fa-check-circle text-tech-blue mt-1"></i>
-            <span>风控阈值触发时，自动执行停新单逻辑，仪表盘+日志同步预警</span>
-          </li>
-          <li class="flex items-start gap-2">
-            <i class="fa fa-check-circle text-tech-blue mt-1"></i>
-            <span>支持MT5所有版本，运行稳定无崩溃，CPU占用≤5%</span>
-          </li>
-          <li class="flex items-start gap-2">
-            <i class="fa fa-check-circle text-tech-blue mt-1"></i>
-            <span>日志输出格式规范，支持双端存储，异常信息可快速定位</span>
-          </li>
-          <li class="flex items-start gap-2">
-            <i class="fa fa-check-circle text-tech-blue mt-1"></i>
-            <span>所有测试场景100%通过，无异常问题</span>
-          </li>
-        </ul>
-      </div>
-    </div>
-  </section>
-
-  <!-- 用户使用指南 -->
-  <section id="user-guide" class="py-16 md:py-24 container mx-auto px-4 bg-tech-dark/30 section-fade">
-    <div class="flex flex-col items-center mb-12">
-      <h2 class="text-2xl md:text-4xl font-bold text-gradient mb-4">用户使用指南</h2>
-      <div class="w-24 h-1 bg-gradient-to-r from-tech-blue to-tech-purple rounded-full"></div>
-    </div>
-    <div class="max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
-      <!-- 被跟账户设置 -->
-      <div class="bg-tech-dark/70 rounded-2xl p-6 md:p-8 card-glow">
-        <div class="flex items-center gap-3 mb-6">
-          <div class="w-10 h-10 bg-tech-blue/20 rounded-lg flex items-center justify-center">
-            <span class="text-tech-blue font-bold">1</span>
-          </div>
-          <h3 class="text-xl font-bold">被跟账户（信号源）设置</h3>
-        </div>
-        <ul class="text-gray-300 space-y-4">
-          <li class="flex items-start gap-3">
-            <i class="fa fa-angle-right text-tech-blue mt-1"></i>
-            <span>登录被跟账户（实盘/观摩），打开XAUUSD黄金图表</span>
-          </li>
-          <li class="flex items-start gap-3">
-            <i class="fa fa-angle-right text-tech-blue mt-1"></i>
-            <span>将EA拖拽到图表上，参数选择「账户角色=0（被跟账户）」</span>
-          </li>
-          <li class="flex items-start gap-3">
-            <i class="fa fa-angle-right text-tech-blue mt-1"></i>
-            <span>其他参数保持默认，勾选「允许自动交易」，点击确定</span>
-          </li>
-          <li class="flex items-start gap-3">
-            <i class="fa fa-angle-right text-tech-blue mt-1"></i>
-            <span>确认图表右上角显示「绿色笑脸」，EA运行正常</span>
-          </li>
-        </ul>
-      </div>
-      <!-- 跟单账户设置 -->
-      <div class="bg-tech-dark/70 rounded-2xl p-6 md:p-8 card-glow">
-        <div class="flex items-center gap-3 mb-6">
-          <div class="w-10 h-10 bg-tech-blue/20 rounded-lg flex items-center justify-center">
-            <span class="text-tech-blue font-bold">2</span>
-          </div>
-          <h3 class="text-xl font-bold">跟单账户（执行端）设置</h3>
-        </div>
-        <ul class="text-gray-300 space-y-4">
-          <li class="flex items-start gap-3">
-            <i class="fa fa-angle-right text-tech-blue mt-1"></i>
-            <span>登录跟单账户，打开XAUUSD黄金图表</span>
-          </li>
-          <li class="flex items-start gap-3">
-            <i class="fa fa-angle-right text-tech-blue mt-1"></i>
-            <span>加载EA，参数选择「账户角色=1（跟单账户）」</span>
-          </li>
-          <li class="flex items-start gap-3">
-            <i class="fa fa-angle-right text-tech-blue mt-1"></i>
-            <span>填写「目标被跟账户ID」（复制MT5显示的目标账户ID）</span>
-          </li>
-          <li class="flex items-start gap-3">
-            <i class="fa fa-angle-right text-tech-blue mt-1"></i>
-            <span>设置跟单模式（1:1/自适应）与风控参数，勾选自动交易</span>
-          </li>
-          <li class="flex items-start gap-3">
-            <i class="fa fa-angle-right text-tech-blue mt-1"></i>
-            <span>确认仪表盘显示「跟单正常」，完成设置</span>
-          </li>
-        </ul>
-      </div>
-      <!-- 验证步骤 -->
-      <div class="bg-tech-dark/70 rounded-2xl p-6 md:p-8 card-glow md:col-span-2">
-        <div class="flex items-center gap-3 mb-6">
-          <div class="w-10 h-10 bg-tech-blue/20 rounded-lg flex items-center justify-center">
-            <span class="text-tech-blue font-bold">3</span>
-          </div>
-          <h3 class="text-xl font-bold">跟单有效性验证</h3>
-        </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <h4 class="font-semibold text-tech-blue mb-3">测试步骤</h4>
-            <ul class="text-gray-300 space-y-2">
-              <li class="flex items-start gap-2">
-                <i class="fa fa-caret-right text-tech-blue mt-1"></i>
-                <span>被跟账户执行一笔小额测试交易（0.01-0.1手XAUUSD）</span>
-              </li>
-              <li class="flex items-start gap-2">
-                <i class="fa fa-caret-right text-tech-blue mt-1"></i>
-                <span>切换到跟单账户，查看仪表盘订单匹配度</span>
-              </li>
-              <li class="flex items-start gap-2">
-                <i class="fa fa-caret-right text-tech-blue mt-1"></i>
-                <span>查看MT5专家窗口，确认无红色错误日志</span>
-              </li>
-            </ul>
-          </div>
-          <div>
-            <h4 class="font-semibold text-tech-blue mb-3">成功标准</h4>
-            <ul class="text-gray-300 space-y-2">
-              <li class="flex items-start gap-2">
-                <i class="fa fa-check text-tech-blue mt-1"></i>
-                <span>跟单账户同步生成对应订单，手数/SL/TP与设置一致</span>
-              </li>
-              <li class="flex items-start gap-2">
-                <i class="fa fa-check text-tech-blue mt-1"></i>
-                <span>仪表盘显示「订单匹配度100%」，跟单状态正常</span>
-              </li>
-              <li class="flex items-start gap-2">
-                <i class="fa fa-check text-tech-blue mt-1"></i>
-                <span>日志记录「跟单成功」信息，无异常警告</span>
-              </li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- 核心优势 -->
-  <section id="advantages" class="py-16 md:py-24 container mx-auto px-4 section-fade">
-    <div class="flex flex-col items-center mb-12">
-      <h2 class="text-2xl md:text-4xl font-bold text-gradient mb-4">核心优势</h2>
-      <div class="w-24 h-1 bg-gradient-to-r from-tech-blue to-tech-purple rounded-full"></div>
-    </div>
-    <div class="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-      <div class="bg-tech-dark/70 rounded-2xl p-6 card-glow hover:bg-tech-dark/90 transition-all duration-500">
-        <div class="w-16 h-16 bg-tech-blue/20 rounded-xl flex items-center justify-center mb-5 mx-auto">
-          <i class="fa fa-bullseye text-3xl text-tech-blue"></i>
-        </div>
-        <h3 class="text-xl font-bold text-center mb-3">精准无串台</h3>
-        <p class="text-gray-400 text-center">账户ID定向配对，不同信号源与跟单账户完全隔离，无交叉干扰</p>
-      </div>
-      <div class="bg-tech-dark/70 rounded-2xl p-6 card-glow hover:bg-tech-dark/90 transition-all duration-500">
-        <div class="w-16 h-16 bg-tech-blue/20 rounded-xl flex items-center justify-center mb-5 mx-auto">
-          <i class="fa fa-magic text-3xl text-tech-blue"></i>
-        </div>
-        <h3 class="text-xl font-bold text-center mb-3">全自适应匹配</h3>
-        <p class="text-gray-400 text-center">自动适配资金规模、杠杆差异，无需手动计算，风险收益同步</p>
-      </div>
-      <div class="bg-tech-dark/70 rounded-2xl p-6 card-glow hover:bg-tech-dark/90 transition-all duration-500">
-        <div class="w-16 h-16 bg-tech-blue/20 rounded-xl flex items-center justify-center mb-5 mx-auto">
-          <i class="fa fa-shield text-3xl text-tech-blue"></i>
-        </div>
-        <h3 class="text-xl font-bold text-center mb-3">多重安全防护</h3>
-        <p class="text-gray-400 text-center">当日亏损+保证金双阈值风控，手数限制，最大程度规避爆仓风险</p>
-      </div>
-      <div class="bg-tech-dark/70 rounded-2xl p-6 card-glow hover:bg-tech-dark/90 transition-all duration-500">
-        <div class="w-16 h-16 bg-tech-blue/20 rounded-xl flex items-center justify-center mb-5 mx-auto">
-          <i class="fa fa-mobile text-3xl text-tech-blue"></i>
-        </div>
-        <h3 class="text-xl font-bold text-center mb-3">全端无缝适配</h3>
-        <p class="text-gray-400 text-center">完美支持苹果手机、安卓手机、PC电脑，随时随地监控跟单状态</p>
-      </div>
-      <div class="bg-tech-dark/70 rounded-2xl p-6 card-glow hover:bg-tech-dark/90 transition-all duration-500 sm:col-span-2 lg:col-span-2 mx-auto">
-        <div class="w-16 h-16 bg-tech-blue/20 rounded-xl flex items-center justify-center mb-5 mx-auto">
-          <i class="fa fa-user-friends text-3xl text-tech-blue"></i>
-        </div>
-        <h3 class="text-xl font-bold text-center mb-3">多客户/多信号源支持</h3>
-        <p class="text-gray-400 text-center max-w-2xl mx-auto">支持小批量客户服务，不同客户可跟随不同信号源，独立风控参数，满足商业化跟单需求</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- 底部 -->
-  <footer class="py-10 bg-tech-dark/80 border-t border-tech-blue/30">
-    <div class="container mx-auto px-4 text-center">
-      <div class="flex items-center justify-center gap-2 mb-4">
-        <i class="fa fa-line-chart text-tech-blue text-2xl animate-glow-pulse"></i>
-        <h2 class="text-xl font-bold text-gradient">jubaopen贵金属行情研究室</h2>
-      </div>
-      <p class="text-gray-400 mb-6">自研跟单系统 · 科技赋能贵金属交易 · 全端适配 · 精准跟单</p>
-      <div class="w-full h-px bg-tech-blue/20 max-w-2xl mx-auto mb-6"></div>
-      <p class="text-gray-500 text-sm">© 2025 jubaopen贵金属行情研究室 版权所有</p>
-    </div>
-  </footer>
-
-  <!-- JS脚本 -->
-  <script>
-    // 移动端菜单切换
-    const menuBtn = document.getElementById('menuBtn');
-    const mobileMenu = document.getElementById('mobileMenu');
-    menuBtn.addEventListener('click', () => {
-      mobileMenu.classList.toggle('hidden');
-      // 切换图标
-      const icon = menuBtn.querySelector('i');
-      if (icon.classList.contains('fa-bars')) {
-        icon.classList.remove('fa-bars');
-        icon.classList.add('fa-times');
-      } else {
-        icon.classList.remove('fa-times');
-        icon.classList.add('fa-bars');
-      }
-    });
-
-    // 开发标签切换
-    const devTabs = document.querySelectorAll('.dev-tab');
-    const devContents = document.querySelectorAll('.dev-content');
-    devTabs.forEach(tab => {
-      tab.addEventListener('click', () => {
-        // 移除所有激活状态
-        devTabs.forEach(t => {
-          t.classList.remove('active', 'text-tech-blue');
-          t.classList.add('text-gray-400');
-        });
-        devContents.forEach(c => c.classList.add('hidden'));
-        // 添加当前激活状态
-        tab.classList.add('active', 'text-tech-blue');
-        tab.classList.remove('text-gray-400');
-        const tabId = tab.getAttribute('data-tab');
-        document.getElementById(tabId).classList.remove('hidden');
-      });
-    });
-
-    // 滚动动画
-    const sectionFades = document.querySelectorAll('.section-fade');
-    window.addEventListener('scroll', () => {
-      sectionFades.forEach(section => {
-        const sectionTop = section.getBoundingClientRect().top;
-        const windowHeight = window.innerHeight;
-        if (sectionTop < windowHeight * 0.8) {
-          section.classList.add('active');
+            const startTime = new Date().getTime();
+            // 创建img标签实现Ping（浏览器端无原生Ping，此方法最兼容）
+            const img = new Image();
+            img.onload = function() {
+                const delay = new Date().getTime() - startTime;
+                resultDom.className = 'ping-result status-success';
+                resultDom.innerText = `${delay} ms`;
+            };
+            img.onerror = function() {
+                const delay = new Date().getTime() - startTime;
+                resultDom.className = 'ping-result status-success';
+                resultDom.innerText = `${delay} ms`;
+            };
+            // 超时处理（5秒超时）
+            setTimeout(() => {
+                if (resultDom.innerText === '测试中...') {
+                    resultDom.className = 'ping-result status-error';
+                    resultDom.innerText = '无法访问';
+                }
+            }, 5000);
+            // 拼接随机参数避免缓存
+            img.src = `http://${item.domain}/?t=${startTime}`;
         }
-      });
-    });
 
-    // 页面加载时触发一次滚动事件
-    window.dispatchEvent(new Event('scroll'));
-
-    // 平滑滚动
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-      anchor.addEventListener('click', function (e) {
-        e.preventDefault();
-        const targetId = this.getAttribute('href');
-        const targetElement = document.querySelector(targetId);
-        if (targetElement) {
-          // 导航栏高度
-          const navHeight = document.querySelector('nav').offsetHeight;
-          const targetTop = targetElement.getBoundingClientRect().top + window.pageYOffset - navHeight;
-          window.scrollTo({
-            top: targetTop,
-            behavior: 'smooth'
-          });
-          // 移动端菜单关闭
-          if (!mobileMenu.classList.contains('hidden')) {
-            mobileMenu.classList.add('hidden');
-            const icon = menuBtn.querySelector('i');
-            icon.classList.remove('fa-times');
-            icon.classList.add('fa-bars');
-          }
+        // 批量测试所有域名
+        function startAllPing() {
+            // 先重置所有结果
+            domainList.forEach(item => {
+                const dom = document.getElementById(item.id);
+                dom.className = 'ping-result';
+                dom.innerText = '未测试';
+            });
+            // 逐个开始Ping（间隔100ms，避免阻塞）
+            domainList.forEach((item, index) => {
+                setTimeout(() => {
+                    pingDomain(item);
+                }, index * 100);
+            });
         }
-      });
-    });
-  </script>
+    </script>
 </body>
 </html>
