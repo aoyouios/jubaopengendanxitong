@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>域名一键Ping测试 - jubaopen</title>
+    <title>域名管理&Ping测试面板</title>
     <style>
         * {
             margin: 0;
@@ -38,6 +38,11 @@
             border: 1px solid #eee;
             border-radius: 8px;
             margin-bottom: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .domain-card:hover {
+            background: #f8f9fa;
         }
         .domain-name {
             font-size: 14px;
@@ -86,46 +91,93 @@
             line-height: 1.6;
             text-align: center;
         }
+        /* 详情弹窗样式 */
+        .detail-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            display: none;
+        }
+        .modal-content {
+            background: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            width: 85%;
+            max-width: 350px;
+        }
+        .modal-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            word-break: break-all;
+        }
+        .modal-item {
+            font-size: 14px;
+            margin-bottom: 10px;
+            color: #666;
+        }
+        .modal-item span {
+            color: #333;
+            font-weight: 500;
+        }
+        .close-btn {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            background: #eee;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>域名Ping测试面板</h1>
+        <h1>域名管理&Ping测试面板</h1>
         <!-- 9个域名展示区 -->
         <div class="domain-list">
-            <div class="domain-card">
+            <div class="domain-card" onclick="showDetail('aoyouios.dpdns.org')">
                 <div class="domain-name">aoyouios.dpdns.org</div>
                 <div class="ping-result" id="res1">未测试</div>
             </div>
-            <div class="domain-card">
+            <div class="domain-card" onclick="showDetail('aoyouios.ggff.net')">
                 <div class="domain-name">aoyouios.ggff.net</div>
                 <div class="ping-result" id="res2">未测试</div>
             </div>
-            <div class="domain-card">
+            <div class="domain-card" onclick="showDetail('aoyouios.qzz.io')">
                 <div class="domain-name">aoyouios.qzz.io</div>
                 <div class="ping-result" id="res3">未测试</div>
             </div>
-            <div class="domain-card">
+            <div class="domain-card" onclick="showDetail('jubaopen.qzz.io')">
                 <div class="domain-name">jubaopen.qzz.io</div>
                 <div class="ping-result" id="res4">未测试</div>
             </div>
-            <div class="domain-card">
+            <div class="domain-card" onclick="showDetail('myjubaopen.qzz.io')">
                 <div class="domain-name">myjubaopen.qzz.io</div>
                 <div class="ping-result" id="res5">未测试</div>
             </div>
-            <div class="domain-card">
+            <div class="domain-card" onclick="showDetail('sunwukong.qzz.io')">
                 <div class="domain-name">sunwukong.qzz.io</div>
                 <div class="ping-result" id="res6">未测试</div>
             </div>
-            <div class="domain-card">
+            <div class="domain-card" onclick="showDetail('jubaopen.dpdns.org')">
                 <div class="domain-name">jubaopen.dpdns.org</div>
                 <div class="ping-result" id="res7">未测试</div>
             </div>
-            <div class="domain-card">
+            <div class="domain-card" onclick="showDetail('jubaopen.filegear-sg.me')">
                 <div class="domain-name">jubaopen.filegear-sg.me</div>
                 <div class="ping-result" id="res8">未测试</div>
             </div>
-            <div class="domain-card">
+            <div class="domain-card" onclick="showDetail('jubaopen.ggff.net')">
                 <div class="domain-name">jubaopen.ggff.net</div>
                 <div class="ping-result" id="res9">未测试</div>
             </div>
@@ -133,12 +185,76 @@
         <!-- 一键Ping按钮 -->
         <button class="ping-btn" onclick="startAllPing()">一键Ping所有域名</button>
         <div class="tips">
-            点击按钮开始测试，显示延迟(ms)为可访问，数值越小越快<br>
-            纯本地运行，无网络请求，测试结果基于当前手机网络
+            点击域名查看所属容器&账号 | 点击按钮测试延迟，数值越小访问越快<br>
+            纯本地运行，测试结果基于当前手机网络
+        </div>
+    </div>
+
+    <!-- 详情弹窗 -->
+    <div class="detail-modal" id="detailModal">
+        <div class="modal-content">
+            <div class="modal-title" id="modalDomain"></div>
+            <div class="modal-item">所属容器：<span id="modalContainer"></span></div>
+            <div class="modal-item">绑定账号：<span id="modalAccount"></span></div>
+            <button class="close-btn" onclick="hideDetail()">关闭</button>
         </div>
     </div>
 
     <script>
+        // 域名-容器-账号映射表
+        const domainInfo = {
+            "aoyouios.dpdns.org": {
+                container: "https://dash.domain.digitalplat.org/panel/main?page=%2Fpanel%2Fdomains",
+                account: "myjubaopen@hotmail.com"
+            },
+            "aoyouios.ggff.net": {
+                container: "https://customer.l53.net/",
+                account: "ag.td@foxmail.com"
+            },
+            "aoyouios.qzz.io": {
+                container: "https://dash.domain.digitalplat.org/panel/main?page=%2Fpanel%2Fdomains",
+                account: "aoyouios@gmail.com"
+            },
+            "jubaopen.qzz.io": {
+                container: "https://dash.domain.digitalplat.org/panel/main?page=%2Fpanel%2Fdomains",
+                account: "myjubaopen@hotmail.com"
+            },
+            "myjubaopen.qzz.io": {
+                container: "https://dash.domain.digitalplat.org/panel/main?page=%2Fpanel%2Fdomains",
+                account: "860595163@qq.com"
+            },
+            "sunwukong.qzz.io": {
+                container: "https://dash.domain.digitalplat.org/panel/main?page=%2Fpanel%2Fdomains",
+                account: "860595163@qq.com"
+            },
+            "jubaopen.dpdns.org": {
+                container: "https://dash.domain.digitalplat.org/panel/main?page=%2Fpanel%2Fdomains",
+                account: "aoyouios@gmail.com"
+            },
+            "jubaopen.filegear-sg.me": {
+                container: "https://customer.l53.net/",
+                account: "860595163@qq.com"
+            },
+            "jubaopen.ggff.net": {
+                container: "https://customer.l53.net/",
+                account: "ag.td@qq.com"
+            }
+        };
+
+        // 显示域名详情弹窗
+        function showDetail(domain) {
+            const info = domainInfo[domain];
+            document.getElementById("modalDomain").innerText = domain;
+            document.getElementById("modalContainer").innerText = info.container;
+            document.getElementById("modalAccount").innerText = info.account;
+            document.getElementById("detailModal").style.display = "flex";
+        }
+
+        // 隐藏详情弹窗
+        function hideDetail() {
+            document.getElementById("detailModal").style.display = "none";
+        }
+
         // 域名列表与结果ID映射
         const domainList = [
             { id: 'res1', domain: 'aoyouios.dpdns.org' },
@@ -155,12 +271,10 @@
         // 单个域名Ping测试
         function pingDomain(item) {
             const resultDom = document.getElementById(item.id);
-            // 置为加载中
             resultDom.className = 'ping-result status-loading';
             resultDom.innerText = '测试中...';
 
             const startTime = new Date().getTime();
-            // 创建img标签实现Ping（浏览器端无原生Ping，此方法最兼容）
             const img = new Image();
             img.onload = function() {
                 const delay = new Date().getTime() - startTime;
@@ -172,26 +286,22 @@
                 resultDom.className = 'ping-result status-success';
                 resultDom.innerText = `${delay} ms`;
             };
-            // 超时处理（5秒超时）
             setTimeout(() => {
                 if (resultDom.innerText === '测试中...') {
                     resultDom.className = 'ping-result status-error';
                     resultDom.innerText = '无法访问';
                 }
             }, 5000);
-            // 拼接随机参数避免缓存
             img.src = `http://${item.domain}/?t=${startTime}`;
         }
 
         // 批量测试所有域名
         function startAllPing() {
-            // 先重置所有结果
             domainList.forEach(item => {
                 const dom = document.getElementById(item.id);
                 dom.className = 'ping-result';
                 dom.innerText = '未测试';
             });
-            // 逐个开始Ping（间隔100ms，避免阻塞）
             domainList.forEach((item, index) => {
                 setTimeout(() => {
                     pingDomain(item);
