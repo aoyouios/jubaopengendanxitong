@@ -23,6 +23,30 @@
             padding: 25px;
             box-shadow: 0 2px 15px rgba(0,0,0,0.1);
         }
+        /* IP显示样式优化 */
+        .ip-header {
+            font-size: 13px;
+            color: #666;
+            text-align: center;
+            margin-bottom: 15px;
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+            line-height: 1.5;
+        }
+        .ip-header span {
+            color: #2f54eb;
+            font-weight: 500;
+        }
+        .retry-tip {
+            font-size: 11px;
+            color: #ff7d00;
+            margin-top: 5px;
+        }
+        .refresh-tip {
+            font-size: 11px;
+            color: #00b42a;
+            margin-top: 3px;
+        }
         h1 {
             font-size: 20px;
             color: #333;
@@ -91,7 +115,6 @@
             line-height: 1.6;
             text-align: center;
         }
-        /* 详情弹窗样式 */
         .detail-modal {
             position: fixed;
             top: 0;
@@ -142,6 +165,13 @@
 </head>
 <body>
     <div class="container">
+        <!-- IP+中文地理位置显示区域（新增刷新提示） -->
+        <div class="ip-header">
+            当前网络IP：<span id="currentIp">获取中...</span><br>
+            地理位置：<span id="ipLocation">解析中...</span>
+            <div class="retry-tip" id="retryTip" style="display: none;">获取失败，<span id="countdown">5</span>秒后自动重试...</div>
+            <div class="refresh-tip" id="refreshTip" style="display: none;">5秒后自动刷新IP信息...</div>
+        </div>
         <h1>域名管理&Ping测试面板</h1>
         <!-- 9个域名展示区 -->
         <div class="domain-list">
@@ -201,6 +231,123 @@
     </div>
 
     <script>
+        let retryTimer = null; // 重试定时器
+        let refreshTimer = null; // 自动刷新定时器
+        let countdownTimer = null; // 倒计时定时器
+
+        // 国家名称中英文映射表（覆盖主流国家/地区）
+        const countryCnMap = {
+            "China": "中国",
+            "United States": "美国",
+            "Japan": "日本",
+            "South Korea": "韩国",
+            "Singapore": "新加坡",
+            "Hong Kong": "中国香港",
+            "Taiwan": "中国台湾",
+            "Macao": "中国澳门",
+            "United Kingdom": "英国",
+            "Germany": "德国",
+            "France": "法国",
+            "Canada": "加拿大",
+            "Australia": "澳大利亚",
+            "Malaysia": "马来西亚",
+            "Thailand": "泰国",
+            "Vietnam": "越南",
+            "India": "印度",
+            "Russia": "俄罗斯",
+            "Brazil": "巴西",
+            "Italy": "意大利",
+            "Spain": "西班牙",
+            "Netherlands": "荷兰",
+            "Switzerland": "瑞士",
+            "Sweden": "瑞典",
+            "Norway": "挪威",
+            "Denmark": "丹麦",
+            "Finland": "芬兰",
+            "Belgium": "比利时",
+            "Austria": "奥地利",
+            "New Zealand": "新西兰",
+            "Indonesia": "印度尼西亚",
+            "Philippines": "菲律宾",
+            "Pakistan": "巴基斯坦",
+            "Bangladesh": "孟加拉国",
+            "Nigeria": "尼日利亚",
+            "Egypt": "埃及",
+            "South Africa": "南非",
+            "Turkey": "土耳其",
+            "Saudi Arabia": "沙特阿拉伯",
+            "United Arab Emirates": "阿联酋"
+        };
+
+        // 显示倒计时（参数：总秒数、倒计时结束后的回调函数）
+        function showCountdown(totalSeconds, callback) {
+            // 清除之前的倒计时
+            if (countdownTimer) clearInterval(countdownTimer);
+            let seconds = totalSeconds;
+            document.getElementById('countdown').innerText = seconds;
+            
+            countdownTimer = setInterval(() => {
+                seconds--;
+                document.getElementById('countdown').innerText = seconds;
+                if (seconds <= 0) {
+                    clearInterval(countdownTimer);
+                    callback();
+                }
+            }, 1000);
+        }
+
+        // 核心：获取IP+中文地理位置
+        function getIpAndLocation() {
+            // 清除所有定时器
+            if (retryTimer) clearTimeout(retryTimer);
+            if (refreshTimer) clearTimeout(refreshTimer);
+            if (countdownTimer) clearInterval(countdownTimer);
+            // 隐藏所有提示
+            document.getElementById('retryTip').style.display = 'none';
+            document.getElementById('refreshTip').style.display = 'none';
+
+            fetch('https://ipapi.co/json/')
+            .then(response => {
+                if (!response.ok) throw new Error('接口请求失败');
+                return response.json();
+            })
+            .then(data => {
+                // 显示IP
+                document.getElementById('currentIp').innerText = data.ip || '未知IP';
+                
+                // 国家中文翻译（未匹配到则保留原文）
+                const countryCn = countryCnMap[data.country_name] || data.country_name || '未知国家';
+                // 城市名称（接口返回中文则直接显示，否则保留原文）
+                const cityCn = data.city ? `${data.city}` : '';
+                // 拼接地理位置（城市+国家）
+                const location = cityCn 
+                    ? `${countryCn} · ${cityCn}` 
+                    : countryCn;
+                
+                document.getElementById('ipLocation').innerText = location;
+                // 显示自动刷新提示
+                document.getElementById('refreshTip').style.display = 'block';
+                // 5秒后自动刷新
+                refreshTimer = setTimeout(getIpAndLocation, 5000);
+            })
+            .catch(() => {
+                // 显示失败状态
+                document.getElementById('currentIp').innerText = '获取失败';
+                document.getElementById('ipLocation').innerText = '解析失败';
+                // 显示重试提示和倒计时
+                document.getElementById('retryTip').style.display = 'block';
+                showCountdown(5, getIpAndLocation);
+            });
+        }
+
+        // 页面加载时初始化获取，页面关闭时清除所有定时器
+        window.onload = getIpAndLocation;
+        window.onunload = () => {
+            if (retryTimer) clearTimeout(retryTimer);
+            if (refreshTimer) clearTimeout(refreshTimer);
+            if (countdownTimer) clearInterval(countdownTimer);
+        };
+
         // 域名-容器-账号映射表
         const domainInfo = {
             "aoyouios.dpdns.org": {
